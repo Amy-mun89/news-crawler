@@ -16,22 +16,22 @@ import pandas as pd
 import time 
 """
 options = webdriver.ChromeOptions()
-# headless 옵션 설정
+# headless option setting
 options.add_argument('headless')
 options.add_argument("no-sandbox")
 
-# 브라우저 윈도우 사이즈
+# browser window size
 options.add_argument('window-size=1920x1080')
 
  
 
-# 사람처럼 보이게 하는 옵션들
-options.add_argument("lang=ko_KR") # 가짜 플러그인 탑재
+# options which makes the cralwer as a human 
+options.add_argument("lang=ko_KR") # fake plugin
 options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36') # user-agent 이름 설정
 
  
 
-# 드라이버 위치 경로 입력
+# driver directory
 driver = webdriver.Chrome('./chromedriver.exe', chrome_options=options)
 
  
@@ -43,52 +43,51 @@ driver.implicitly_wait(3)
 driver.quit() # driver 종료[출처] python으로 크롤링 하기 기초 1- selenium|작성자 ALMADEN
 """
 
-# 검색결과 URL
+# search result URL 
 def insta_searching(word):
     url = "https://www.instagram.com/explore/tags/" +word
     return url
     
-# 첫번재 게시글 열기
+# open first posting 
 def select_first(driver) :
     first = driver.find_element_by_css_selector("div._9AhH0")
     first.click()
     time.sleep(3)    
     
-### 게시글 정보 가져오기
-
+### get the info dta
 import re
 
 def get_content(driver):
-    # 현재 페이지에  html 정보 가져오기
+    # load the html info to current page 
     html = driver.page_source
     soup = BeautifulSoup(html, 'lxml')
-    # 본문 내용 가져오기
+    # load main contents 
     try:
          content = soup.select('div.C4VMK > span')[0].text
     except:
         content = ' '
-    # 본문 내용에서 해시태그 가져오기 
+    # load hashtags  
     tags = re.findall(r'#[^\s#,\\]+', content)
-    # 작성일자 정보 가져오기
+    # load date time
     date = soup.select('time._1o9PC.Nzb55')[0]['datetime'][:10]
-    # 좋아요 수 가져오기
+    # load likes 
     try:
         like = soup.select('div.Nm9Fw > button')[0].text[4:-1]
     except:
         like = 0
-    # 위치정보 가져오기
+    # load location 
     try:
         place = soup.select('div.M30cS')[0].text
     except:
         place = ''
-    # 수집한 정보 저장하기
+    # save the info 
     data = [content, date, like, place, tags]
     return data
 
 
 
 
-### 다음 게시글 열기
+### open next post
 
 def move_next(driver):
     right = driver.find_element_by_css_selector('a._65Bje.coreSpriteRightPaginationArrow')
@@ -96,7 +95,7 @@ def move_next(driver):
     time.sleep(3)
 
 
-# 인스타 로그인 url
+# instagram log in url 
 loginUrl = 'https://www.instagram.com/accounts/login'
 
 # driver load
@@ -124,15 +123,15 @@ Notnow = driver.find_element_by_css_selector('body > div.RnEpo.Yx5HN > div > div
 Notnow.click()
 
 
-# 인스타 검색페이지 URL
+# instagram search page URL 
 word = 'running'
 url = insta_searching(word)
 
-# 검색페이지 접속
+# go to the search page 
 driver.get(url)
 time.sleep(3)
 
-# 첫번째 게시글 열기
+#open first post 
 select_first(driver)
 
 
@@ -141,9 +140,9 @@ results = [ ]
 
 
 # crowling 
-target = 10 #크롤링할 게시물 수
+target = 10 # number of the post which you cralw
 for i in range (target):
-    data = get_content(driver) #게시물 정보 가져오기
+    data = get_content(driver) #load the post info 
     results.append(data)
     move_next(driver)
     
